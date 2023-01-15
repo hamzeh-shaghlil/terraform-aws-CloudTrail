@@ -1,0 +1,421 @@
+Parameters:
+
+  CloudTrailLogGroup:
+    Description: Enter CloudWatch Logs log group name For CloudTrail.
+    Type: String
+
+  Email:
+    Type: String
+    Description: Email address to notify if any security alarm is triggered.
+
+Resources:
+
+  AlarmNotificationTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: "Security-Alarms"
+      Subscription:
+        - Endpoint: !Ref Email
+          Protocol: email
+
+  AWSManagementConsoleAuthenticationFailures: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName=ConsoleLogin) && ($.errorMessage=\"Failed authentication\")}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "AWS-Management-Console-authentication-failures"
+
+  AWSManagementConsoleAuthenticationFailuresAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: AWS-Management-Console-authentication-failures
+      AlarmDescription: Alarms when an API call Fails Authentication.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: AWS-Management-Console-authentication-failures
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+  CloudTrailConfigurationChanges: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName=CreateTrail) || ($.eventName=UpdateTrail) || ($.eventName=DeleteTrail) || ($.eventName=StartLogging) || ($.eventName=StopLogging)}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "CloudTrail-Configuration-Changes"
+
+  CloudTrailConfigurationChangesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: CloudTrail-Configuration-Changes
+      AlarmDescription: Alarms when an API call is made to create, update or delete a CloudTrail trail, or to start or stop logging to a trail.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: CloudTrail-Configuration-Changes
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+  ConfigConfigurationChanges: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventSource=config.amazonaws.com) && (($.eventName=StopConfigurationRecorder) || ($.eventName=DeleteDeliveryChannel) || ($.eventName=PutDeliveryChannel) || ($.eventName=PutConfigurationRecorder))}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Config-Configuration-Changes"
+
+  ConfigConfigurationChangesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Config-Configuration-Changes
+      AlarmDescription: Alarms when an API call is made to change config Configuration.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Config-Configuration-Changes
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+  ConsoleSigninFailure: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName = ConsoleLogin) && ($.responseElements.ConsoleLogin != \"Success\")}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Console-Sign-in-Failure"
+
+  ConsoleSigninFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Console-Sign-in-Failure
+      AlarmDescription: Alarms when an unauthenticated API call is made to sign into the console.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Console-Sign-in-Failure
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+  DisablingOrScheduledDeletionOfCustomerCreatedCMKs: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventSource=kms.amazonaws.com) && (($.eventName=DisableKey) || ($.eventName=ScheduleKeyDeletion))}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Disabling-Or-Scheduled-Deletion-of-Customer-created-CMKs"
+
+  DisablingOrScheduledDeletionOfCustomerCreatedCMKsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Disabling-Or-Scheduled-Deletion-of-Customer-created-CMKs
+      AlarmDescription: Alarms when an API call is made to disable or Schedule Key for Deletion.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Disabling-Or-Scheduled-Deletion-of-Customer-created-CMKs
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+
+  IAMPolicyChanges: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName=DeleteGroupPolicy) || ($.eventName=DeleteRolePolicy) || ($.eventName=DeleteUserPolicy) || ($.eventName=PutGroupPolicy) || ($.eventName=PutRolePolicy) || ($.eventName=PutUserPolicy) || ($.eventName=CreatePolicy) || ($.eventName=DeletePolicy) || ($.eventName=CreatePolicyVersion) || ($.eventName=DeletePolicyVersion) || ($.eventName=AttachRolePolicy) || ($.eventName=DetachRolePolicy) || ($.eventName=AttachUserPolicy) || ($.eventName=DetachUserPolicy) || ($.eventName=AttachGroupPolicy) || ($.eventName=DetachGroupPolicy)}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "IAM-Policy-Changes"
+
+  IAMPolicyChangesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: IAM-Policy-Changes
+      AlarmDescription: Alarms when an API call is made to change an IAM policy.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: IAM-Policy-Changes
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+
+  ManagementConsoleSignInWithoutMFA: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\")}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Management-Console-Sign-In-Without-MFA"
+
+  ManagementConsoleSignInWithoutMFAAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Management-Console-Sign-In-Without-MFA
+      AlarmDescription: Alarms when an API call is made to log in without MFA.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Management-Console-Sign-In-Without-MFA
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+
+  S3BucketPolicyChanges: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventSource=s3.amazonaws.com) && (($.eventName=PutBucketAcl) || ($.eventName=PutBucketPolicy) || ($.eventName=PutBucketCors) || ($.eventName=PutBucketLifecycle) || ($.eventName=PutBucketReplication) || ($.eventName=DeleteBucketPolicy) || ($.eventName=DeleteBucketCors) || ($.eventName=DeleteBucketLifecycle) || ($.eventName=DeleteBucketReplication))}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "S3-Bucket-Policy-Changes"
+
+  S3BucketPolicyChangesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: S3-Bucket-Policy-Changes
+      AlarmDescription: Alarms when an API call is made to create, update or delete a s3 bucket policy.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: S3-Bucket-Policy-Changes
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+
+  VPCChanges: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName=CreateVpc) || ($.eventName=DeleteVpc) || ($.eventName=ModifyVpcAttribute) || ($.eventName=AcceptVpcPeeringConnection) || ($.eventName=CreateVpcPeeringConnection) || ($.eventName=DeleteVpcPeeringConnection) || ($.eventName=RejectVpcPeeringConnection) || ($.eventName=AttachClassicLinkVpc) || ($.eventName=DetachClassicLinkVpc) || ($.eventName=DisableVpcClassicLink) || ($.eventName=EnableVpcClassicLink)}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "VPC-Changes"
+
+  VPCChangesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: VPC-Changes
+      AlarmDescription: Alarms when an API call is made to create, update or delete a VPC.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: VPC-Changes
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+  ChangesToNetworkAccessControlLists: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName=CreateNetworkAcl) || ($.eventName=CreateNetworkAclEntry) || ($.eventName=DeleteNetworkAcl) || ($.eventName=DeleteNetworkAclEntry) || ($.eventName=ReplaceNetworkAclEntry) || ($.eventName=ReplaceNetworkAclAssociation)}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Changes-To-Network-Access-Control-Lists"
+
+  ChangesToNetworkAccessControlListsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Changes-To-Network-Access-Control-Lists
+      AlarmDescription: Alarms when an API call is made to create, update or delete a NACL.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Changes-To-Network-Access-Control-Lists
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+
+  ChangesToNetworkGateways: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName=CreateCustomerGateway) || ($.eventName=DeleteCustomerGateway) || ($.eventName=AttachInternetGateway) || ($.eventName=CreateInternetGateway) || ($.eventName=DeleteInternetGateway) || ($.eventName=DetachInternetGateway)}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Changes-To-Network-Gateways"
+
+  
+  ChangesToNetworkGatewaysAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Changes-To-Network-Gateways
+      AlarmDescription: Alarms when an API call is made to create or delete a Network gateways.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Changes-To-Network-Gateways
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+
+  RouteTableChanges: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName=CreateRoute) || ($.eventName=CreateRouteTable) || ($.eventName=ReplaceRoute) || ($.eventName=ReplaceRouteTableAssociation) || ($.eventName=DeleteRouteTable) || ($.eventName=DeleteRoute) || ($.eventName=DisassociateRouteTable)}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Route-Table-Changes"
+
+  RouteTableChangesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Route-Table-Changes
+      AlarmDescription: Alarms when an API call is made to create, update or delete a Route table.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Route-Table-Changes
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+
+  SecurityGroupChanges: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.eventName=AuthorizeSecurityGroupIngress) || ($.eventName=AuthorizeSecurityGroupEgress) || ($.eventName=RevokeSecurityGroupIngress) || ($.eventName=RevokeSecurityGroupEgress) || ($.eventName=CreateSecurityGroup) || ($.eventName=DeleteSecurityGroup)}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Security-Group-Changes"
+
+  SecurityGroupChangesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Security-Group-Changes
+      AlarmDescription: Alarms when an API call is made to create, update or delete a Security Group.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Security-Group-Changes
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+  UnauthorizedAPICalls: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{($.errorCode=\"*UnauthorizedOperation\") || ($.errorCode=\"AccessDenied*\")}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Unauthorized-API-Calls"
+
+  UnauthorizedAPICallsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Unauthorized-API-Calls
+      AlarmDescription: Alarms when an unauthorized API call is made.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Unauthorized-API-Calls
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+
+  UsageOfRootAccount: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: !Ref CloudTrailLogGroup
+      FilterPattern: "{$.userIdentity.type=\"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType !=\"AwsServiceEvent\"}"
+      MetricTransformations: 
+        - MetricValue: "1"
+          DefaultValue: "0"
+          MetricNamespace: "LogMetrics"
+          MetricName: "Usage-Of-Root-Account"
+
+  UsageOfRootAccountAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Usage-Of-Root-Account
+      AlarmDescription: Alarms when the Root account is used.
+      AlarmActions:
+        - !Ref AlarmNotificationTopic
+      MetricName: Usage-Of-Root-Account
+      Namespace: LogMetrics
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      Period: '300'
+      Statistic: Sum
+      Threshold: '1'
+
+
+ 
