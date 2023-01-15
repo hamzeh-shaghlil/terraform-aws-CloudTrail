@@ -21,7 +21,7 @@ module "cloudtrail" {
     source = "./Modules/CloudTrail"
     account_name = "hisham"
     region = "eu-west-1"
-    email = "hisham.shaikha@bespinglobal.ae"
+    email = "email-address"
 }
 ```
 
