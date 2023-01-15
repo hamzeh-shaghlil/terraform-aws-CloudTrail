@@ -19,7 +19,7 @@ The following resources will be created:
 ```
 module "cloudtrail" {
     source = "./Modules/CloudTrail"
-    account_name = "hisham"
+    account_name = "accountname"
     region = "eu-west-1"
     email = "email-address"
 }
