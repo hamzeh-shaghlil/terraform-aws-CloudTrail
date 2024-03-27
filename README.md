@@ -40,6 +40,42 @@ module "cloudtrail" {
     email = "email-address"
 }
 ```
+This terraform use S3 as backend for terraform state 
+  1. Update the `backend.tf`  
+```terraform
+terraform {
+  backend "s3" {
+    encrypt = true
+    bucket  = "your-backet-name"
+    key     = "terraform.tfstate"
+    region  = "your-bucket-region"
+  }
+}
+```
+
+2. Update the AWS Account ID in `buildspec.yaml` file
+
+3. Run the terraform init command to initialize a working directory that contains a Terraform configuration
+```
+terraform init
+```
+4. The terraform plan command evaluates a Terraform configuration to determine the desired state of all the resources it declares, then compares that desired state to the real infrastructure objects being managed with the current working directory and workspace
+```
+terraform plan
+```
+5. The terraform apply command performs a plan just like terraform plan does, but then actually carries out the planned changes to each resource using the relevant infrastructure provider's API. It asks for confirmation from the user before making any changes, unless it was explicitly told to skip approval.
+```
+terraform apply
+```
+6. After finishing, you will have the below results
+```
+Apply complete!  
+
+terraform output
+````
+
+
+
 
 ### Attributes
 
