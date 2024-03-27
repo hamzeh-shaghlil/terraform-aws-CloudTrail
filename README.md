@@ -1,5 +1,11 @@
 # CloudTrail
 
+AWS CloudTrail is an AWS service that helps you enable operational and risk auditing, governance, and compliance of your AWS account. Actions taken by a user, role, or an AWS service are recorded as events in CloudTrail. Events include actions taken in the AWS Management Console, AWS Command Line Interface, and AWS SDKs and APIs.
+
+<img width="1376" alt="Screenshot 2024-03-27 at 4 42 55 PM" src="https://github.com/hamzeh-shaghlil/terraform-aws-CloudTrail/assets/15934776/ad28c02e-abd2-4558-9e6c-76e50abaab1f">
+
+
+CloudTrail is active in your AWS account when you create it and doesn't require any manual setup. When activity occurs in your AWS account, that activity is recorded in a CloudTrail event
 ## Overview
 
 This module creates an S3 Bucket and the required resources to enable CloudTrail.
@@ -11,7 +17,7 @@ The following resources will be created:
 3. IAM Role fow sending CloudTrail logs to CloudWatch.
 4. KMS for log encryption.
 5. CloudTrail.
-6. CloudWatch security alarams.
+6. CloudWatch security alarms.
 
 
 ## Usage
